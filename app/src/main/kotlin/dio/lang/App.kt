@@ -3,13 +3,183 @@
  */
 package dio.lang
 
-class App {
-    val greeting: String
-        get() {
-            return "Hello World!"
+import java.io.File
+import kotlin.text.StringBuilder
+
+private val VALID_NUMBERS = ('0'..'9') + '.'
+private val IGNORED_CHARS_IN_NUMBER = "_,"
+private val STRING_ESCAPED_CHARS = """t""""
+private val STRING_SUB_CHARS = "\t\""
+private val CHAR_START_CHARACTER = '\''
+
+
+
+enum class Token {
+    OpenParen, //("("),
+    CloseParen, //(")"),
+    Equals, //("="),
+    GreaterThan, //(">"),
+    LessThan, //(">"),
+    GreaterThanEquals, //(">="),
+    LessThanEquals, //("<="),
+    Colon, //(":"),
+    Semicolon, //(";"),
+    Plus, //("+"),
+    Minus, //("-"),
+    Underscore, //("_"),
+    Identifier,
+    Number,
+    String,
+    Char,
+    ;
+}
+
+data class TokenPosition(
+    val token: Token,
+    val line: Int,
+    val start: Int,
+    val end: Int,
+    val value: String,
+)
+
+class Lexer {
+    fun lex(string: String, line: Int): LexedFile {
+        val tokenList = mutableListOf<TokenPosition>()
+        var index = 0
+        while (index < string.length) {
+            val char = string[index]
+            when (char) {
+                in '0'..'9' -> {
+                    val token = scanNumber(string, index)
+                    tokenList += token
+                    index = token.end
+                }
+                ' ' -> { /* Ignore it */ }
+                '+' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "+") }
+                '-' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "-") }
+                '*' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "*") }
+                '/' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "/") }
+                '"' -> {
+                    val token = scanString(string, index + 1)
+                    tokenList += token
+                    index = token.end
+                }
+                '\'' -> {
+                    val token = scanChar(string, index + 1)
+                    tokenList += token
+                    index = token.end
+                }
+            }
+            index++
         }
+        return LexedFile(tokenList)
+    }
+}
+
+fun scanNumber(string: String, index: Int): TokenPosition {
+    var internalIndex = index
+    val value = StringBuilder()
+    while (true) {
+        if (internalIndex >= string.length) {
+            break
+        }
+
+        if (string[internalIndex] in VALID_NUMBERS) {
+            value.append(string[internalIndex])
+        } else if (string[internalIndex] in IGNORED_CHARS_IN_NUMBER) {
+            // We are just ignoring/consuming chars
+        } else {
+            break
+        }
+
+        internalIndex++
+    }
+
+    return TokenPosition(Token.Number, 1, index, internalIndex, value.toString())
+}
+
+fun scanString (string: String, index : Int): TokenPosition {
+    val value = StringBuilder()
+    var internalIndex = index
+    while (true) {
+        if (internalIndex >= string.length) {
+            break
+        }
+
+        // val x = "asdf -> \"hello\"" = asdf -> "hello"
+        val char = string[internalIndex]
+        if (char == '\\') {
+            internalIndex++
+            val nextChar = string[internalIndex]
+
+            if (nextChar !in STRING_ESCAPED_CHARS) {
+                throw IllegalArgumentException("Unrecognized escaped char")
+            } else {
+                value.append(STRING_SUB_CHARS[STRING_ESCAPED_CHARS.indexOf(nextChar)])
+            }
+        } else if (char != '"') {
+            value.append(char)
+        } else {
+            break
+        }
+
+        internalIndex++
+    }
+    return TokenPosition(Token.String, 1, index, internalIndex, value.toString())
+}
+
+
+fun scanChar(string: String, index: Int): TokenPosition {
+    val stringBuilder = StringBuilder()
+    var internalIndex = index
+    while (true) {
+        if (internalIndex >= string.length) {
+            break
+        }
+
+        val char = string[internalIndex]
+
+        if (char == '\\') {
+            internalIndex++
+            val nextChar = string[internalIndex]
+
+            if (nextChar !in STRING_ESCAPED_CHARS) {
+                throw IllegalArgumentException("Unrecognized escaped char")
+            } else {
+                stringBuilder.append(STRING_SUB_CHARS[STRING_ESCAPED_CHARS.indexOf(nextChar)])
+            }
+        } else if (char != '\'') { // ';'
+            stringBuilder.append(char)
+        } else {
+            break
+        }
+
+        internalIndex ++
+
+    }
+
+    return TokenPosition(Token.Char, 1, index, internalIndex, stringBuilder.toString())
+}
+
+fun readFile(file : File) :List<String> {
+    // val x = listOf(
+    // 1,3)
+
+    return file.readLines()
+}
+
+data class LexedFile(
+    val expressions: List<TokenPosition>,
+)
+
+sealed interface Expression
+
+class UnaryExpression: Expression {
+
 }
 
 fun main() {
-    println(App().greeting)
+    val string = """1_000_000 + 1 + "\"hello\"\t world" 't'  '\t' """
+    val lexer = Lexer()
+    println(lexer.lex(string, 1))
 }
