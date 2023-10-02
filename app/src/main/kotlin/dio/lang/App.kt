@@ -6,18 +6,20 @@ package dio.lang
 import java.io.File
 import kotlin.text.StringBuilder
 
-private val VALID_NUMBERS = ('0'..'9') + '.'
-private val IGNORED_CHARS_IN_NUMBER = "_,"
-private val STRING_ESCAPED_CHARS = """t""""
-private val STRING_SUB_CHARS = "\t\""
+val VALID_NUMBERS = ('0'..'9') + '.'
+val IGNORED_CHARS_IN_NUMBER = "_,"
+val STRING_ESCAPED_CHARS = """t""""
+val STRING_SUB_CHARS = "\t\""
 private val CHAR_START_CHARACTER = '\''
 
-
-
-enum class Token {
+enum class TokenType {
     OpenParen, //("("),
     CloseParen, //(")"),
+    Slash,
+    Backslash,
+    Asterisk,
     Equals, //("="),
+    DoubleEquals, //("="),
     GreaterThan, //(">"),
     LessThan, //(">"),
     GreaterThanEquals, //(">="),
@@ -31,105 +33,26 @@ enum class Token {
     Number,
     String,
     Char,
+    Class,
+    Interface,
+    ShiftLeft,
+    ShiftRight,
     ;
 }
 
-data class TokenPosition(
-    val token: Token,
+data class Token(
+    val tokenType: TokenType,
     val line: Int,
     val start: Int,
     val end: Int,
     val value: String,
 )
 
-class Lexer {
-    fun lex(string: String, line: Int): LexedFile {
-        val tokenList = mutableListOf<TokenPosition>()
-        var index = 0
-        while (index < string.length) {
-            val char = string[index]
-            when (char) {
-                in '0'..'9' -> {
-                    val token = scanNumber(string, index)
-                    tokenList += token
-                    index = token.end
-                }
-                ' ' -> { /* Ignore it */ }
-                '+' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "+") }
-                '-' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "-") }
-                '*' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "*") }
-                '/' -> { tokenList += TokenPosition(Token.Plus, 1, index, index + 1, "/") }
-                '"' -> {
-                    val token = scanString(string, index + 1)
-                    tokenList += token
-                    index = token.end
-                }
-                '\'' -> {
-                    val token = scanChar(string, index + 1)
-                    tokenList += token
-                    index = token.end
-                }
-            }
-            index++
-        }
-        return LexedFile(tokenList)
-    }
-}
-
-fun scanNumber(string: String, index: Int): TokenPosition {
-    var internalIndex = index
-    val value = StringBuilder()
-    while (true) {
-        if (internalIndex >= string.length) {
-            break
-        }
-
-        if (string[internalIndex] in VALID_NUMBERS) {
-            value.append(string[internalIndex])
-        } else if (string[internalIndex] in IGNORED_CHARS_IN_NUMBER) {
-            // We are just ignoring/consuming chars
-        } else {
-            break
-        }
-
-        internalIndex++
-    }
-
-    return TokenPosition(Token.Number, 1, index, internalIndex, value.toString())
-}
-
-fun scanString (string: String, index : Int): TokenPosition {
-    val value = StringBuilder()
-    var internalIndex = index
-    while (true) {
-        if (internalIndex >= string.length) {
-            break
-        }
-
-        // val x = "asdf -> \"hello\"" = asdf -> "hello"
-        val char = string[internalIndex]
-        if (char == '\\') {
-            internalIndex++
-            val nextChar = string[internalIndex]
-
-            if (nextChar !in STRING_ESCAPED_CHARS) {
-                throw IllegalArgumentException("Unrecognized escaped char")
-            } else {
-                value.append(STRING_SUB_CHARS[STRING_ESCAPED_CHARS.indexOf(nextChar)])
-            }
-        } else if (char != '"') {
-            value.append(char)
-        } else {
-            break
-        }
-
-        internalIndex++
-    }
-    return TokenPosition(Token.String, 1, index, internalIndex, value.toString())
-}
 
 
-fun scanChar(string: String, index: Int): TokenPosition {
+
+
+fun scanChar(string: String, index: Int): Token {
     val stringBuilder = StringBuilder()
     var internalIndex = index
     while (true) {
@@ -158,18 +81,11 @@ fun scanChar(string: String, index: Int): TokenPosition {
 
     }
 
-    return TokenPosition(Token.Char, 1, index, internalIndex, stringBuilder.toString())
-}
-
-fun readFile(file : File) :List<String> {
-    // val x = listOf(
-    // 1,3)
-
-    return file.readLines()
+    return Token(TokenType.Char, 1, index, internalIndex, stringBuilder.toString())
 }
 
 data class LexedFile(
-    val expressions: List<TokenPosition>,
+    val expressions: List<Token>,
 )
 
 sealed interface Expression
@@ -179,7 +95,10 @@ class UnaryExpression: Expression {
 }
 
 fun main() {
-    val string = """1_000_000 + 1 + "\"hello\"\t world" 't'  '\t' """
-    val lexer = Lexer()
-    println(lexer.lex(string, 1))
+    val string = """>
+        |"My test"
+        |293_875
+    """.trimMargin()
+    val lexer = Lexer(string)
+    println(lexer.lex())
 }
