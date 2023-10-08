@@ -3,17 +3,20 @@ package dio.lang
 class Lexer(private val string: String) {
     private val tokenList = mutableListOf<Token>()
     private var currentLine = 0
-    private var currentIndex = -1
+    private var currentIndex = 0
     private var currentIndexInLine = 0
 
     fun lex(): LexedFile {
         println("Lexing: $string")
         while (currentIndex < string.length) {
-            val char = next() ?: break
+            val char = current() ?: break
             println("Dealing with: '$char', index: $currentIndex")
             when (char) {
                 in '0'..'9' -> {
                     tokenList += scanNumber()
+                }
+                in 'a' .. 'z', in 'A' .. 'Z' -> {
+                    tokenList += scanWord()
                 }
                 ' ' -> { /* Ignore it */ }
                 '\t' -> { /* Ignore it */ }
@@ -27,10 +30,10 @@ class Lexer(private val string: String) {
                 '/' -> { tokenList += Token(TokenType.Slash, currentLine, currentIndex, currentIndex + 1, "/") }
                 '=' -> {
                     if (peek() == '=') {
-                        tokenList += Token(TokenType.DoubleEquals, currentLine, currentIndex, currentIndex + 2, "=")
+                        tokenList += Token(TokenType.DoubleEquals, currentLine, currentIndex, currentIndex + 2, "==")
                         advance()
                     } else {
-                        tokenList += Token(TokenType.Equals, currentLine, currentIndex, currentIndex + 1, "==")
+                        tokenList += Token(TokenType.Equals, currentLine, currentIndex, currentIndex + 1, "=")
                     }
                 }
                 '>' -> {
@@ -70,11 +73,26 @@ class Lexer(private val string: String) {
                 }
                 else -> { throw IllegalArgumentException("Invalid character at $currentLine:$currentIndexInLine: '$char'") }
             }
+            advance()
         }
         return LexedFile(tokenList)
     }
 
-    private fun scanString (): Token {
+    private fun scanWord(): Token {
+        val value = StringBuilder()
+        val startIndex = currentIndex
+        while (current().isIdentifierChar()) {
+            value.append(current())
+            advance()
+        }
+
+        val isKeyword = value.toString() in KEYWORDS
+        val type = if (isKeyword) value.toString().toTokenType() else TokenType.Identifier
+
+        return Token(type, currentLine, currentIndex - (currentIndex - startIndex), currentIndex, value.toString())
+    }
+
+    private fun scanString(): Token {
         val value = StringBuilder()
         val startIndex = currentIndex
         while (true) {
@@ -94,10 +112,10 @@ class Lexer(private val string: String) {
                 break
             }
         }
-        return Token(TokenType.String, 1, currentIndex - (currentIndex - startIndex), currentIndex, value.toString())
+        return Token(TokenType.String, currentLine, currentIndex - (currentIndex - startIndex), currentIndex, value.toString())
     }
 
-    fun scanNumber(): Token {
+    private fun scanNumber(): Token {
         val value = StringBuilder()
         val startIndex = currentIndex
         while (true) {
@@ -120,7 +138,7 @@ class Lexer(private val string: String) {
     /**
      * Returns the next character after advancing the pointer. Null if we are at the end
      */
-    fun next(): Char? {
+    private fun next(): Char? {
         return if (currentIndex+1 >= string.length) {
             null
         } else {
@@ -133,7 +151,7 @@ class Lexer(private val string: String) {
     /**
      * Returns the current char without advancing
      */
-    fun current(): Char? {
+    private fun current(): Char? {
         return if (currentIndex >= string.length) {
             null
         } else {

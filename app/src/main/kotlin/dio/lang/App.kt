@@ -12,44 +12,15 @@ val STRING_ESCAPED_CHARS = """t""""
 val STRING_SUB_CHARS = "\t\""
 private val CHAR_START_CHARACTER = '\''
 
-enum class TokenType {
-    OpenParen, //("("),
-    CloseParen, //(")"),
-    Slash,
-    Backslash,
-    Asterisk,
-    Equals, //("="),
-    DoubleEquals, //("="),
-    GreaterThan, //(">"),
-    LessThan, //(">"),
-    GreaterThanEquals, //(">="),
-    LessThanEquals, //("<="),
-    Colon, //(":"),
-    Semicolon, //(";"),
-    Plus, //("+"),
-    Minus, //("-"),
-    Underscore, //("_"),
-    Identifier,
-    Number,
-    String,
-    Char,
-    Class,
-    Interface,
-    ShiftLeft,
-    ShiftRight,
-    ;
+fun main() {
+    val string = """let identifier = 1
+        |let number = identifier + 1
+        |"My test"
+        |293_875
+    """.trimMargin()
+    val lexer = Lexer(string)
+    println(lexer.lex())
 }
-
-data class Token(
-    val tokenType: TokenType,
-    val line: Int,
-    val start: Int,
-    val end: Int,
-    val value: String,
-)
-
-
-
 
 
 fun scanChar(string: String, index: Int): Token {
@@ -90,15 +61,6 @@ data class LexedFile(
 
 sealed interface Expression
 
+
 class UnaryExpression: Expression {
-
-}
-
-fun main() {
-    val string = """>
-        |"My test"
-        |293_875
-    """.trimMargin()
-    val lexer = Lexer(string)
-    println(lexer.lex())
 }
