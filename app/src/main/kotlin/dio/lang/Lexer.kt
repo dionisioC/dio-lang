@@ -18,51 +18,56 @@ class Lexer(private val string: String) {
                 in 'a' .. 'z', in 'A' .. 'Z' -> {
                     tokenList += scanWord()
                 }
-                ' ' -> { /* Ignore it */ }
-                '\t' -> { /* Ignore it */ }
+                ' ' -> { /* Ignore it */ advance() }
+                '\t' -> { /* Ignore it */ advance() }
+                '\r' -> { /* Ignore it */ advance() }
                 '\n' -> {
                     currentLine++
                     currentIndexInLine = 0
+                    advance()
                 }
-                '+' -> { tokenList += Token(TokenType.Plus, currentLine, currentIndex, currentIndex + 1, "+") }
-                '-' -> { tokenList += Token(TokenType.Minus, currentLine, currentIndex, currentIndex + 1, "-") }
-                '*' -> { tokenList += Token(TokenType.Asterisk, currentLine, currentIndex, currentIndex + 1, "*") }
-                '/' -> { tokenList += Token(TokenType.Slash, currentLine, currentIndex, currentIndex + 1, "/") }
+                '+' -> { tokenList += Token(TokenType.Plus, currentLine, currentIndex, currentIndex + 1, "+"); advance() }
+                '-' -> { tokenList += Token(TokenType.Minus, currentLine, currentIndex, currentIndex + 1, "-"); advance() }
+                '*' -> { tokenList += Token(TokenType.Asterisk, currentLine, currentIndex, currentIndex + 1, "*"); advance() }
+                '/' -> { tokenList += Token(TokenType.Slash, currentLine, currentIndex, currentIndex + 1, "/"); advance() }
                 '=' -> {
                     if (peek() == '=') {
                         tokenList += Token(TokenType.DoubleEquals, currentLine, currentIndex, currentIndex + 2, "==")
-                        advance()
+                        advance(2)
                     } else {
                         tokenList += Token(TokenType.Equals, currentLine, currentIndex, currentIndex + 1, "=")
+                        advance()
                     }
                 }
                 '>' -> {
                     if (peek() == '=') {
                         tokenList += Token(TokenType.GreaterThanEquals, currentLine, currentIndex, currentIndex + 2, "=")
-                        advance()
+                        advance(2)
                     } else if (peek() == '>') {
                         tokenList += Token(TokenType.ShiftRight, currentLine, currentIndex, currentIndex + 2, ">>")
-                        advance()
+                        advance(2)
                     } else {
-                        tokenList += Token(TokenType.GreaterThan, currentLine, currentIndex, currentIndex + 1, "==")
+                        tokenList += Token(TokenType.GreaterThan, currentLine, currentIndex, currentIndex + 1, ">")
+                        advance()
                     }
                 }
                 '<' -> {
                     if (peek() == '=') {
                         tokenList += Token(TokenType.LessThanEquals, currentLine, currentIndex, currentIndex + 2, "=")
-                        advance()
+                        advance(2)
                     } else if (peek() == '<') {
                         tokenList += Token(TokenType.ShiftLeft, currentLine, currentIndex, currentIndex + 2, "<<")
-                        advance()
+                        advance(2)
                     } else {
                         tokenList += Token(TokenType.LessThan, currentLine, currentIndex, currentIndex + 1, "==")
+                        advance()
                     }
                 }
-                '_' -> { tokenList += Token(TokenType.Underscore, currentLine, currentIndex, currentIndex + 1, "_") }
-                ':' -> { tokenList += Token(TokenType.Colon, currentLine, currentIndex, currentIndex + 1, ":") }
-                ';' -> { tokenList += Token(TokenType.Semicolon, currentLine, currentIndex, currentIndex + 1, ";") }
-                '(' -> { tokenList += Token(TokenType.OpenParen, currentLine, currentIndex, currentIndex + 1, "(") }
-                ')' -> { tokenList += Token(TokenType.CloseParen, currentLine, currentIndex, currentIndex + 1, ")") }
+                '_' -> { tokenList += Token(TokenType.Underscore, currentLine, currentIndex, currentIndex + 1, "_"); advance() }
+                ':' -> { tokenList += Token(TokenType.Colon, currentLine, currentIndex, currentIndex + 1, ":"); advance() }
+                ';' -> { tokenList += Token(TokenType.Semicolon, currentLine, currentIndex, currentIndex + 1, ";"); advance() }
+                '(' -> { tokenList += Token(TokenType.OpenParen, currentLine, currentIndex, currentIndex + 1, "("); advance() }
+                ')' -> { tokenList += Token(TokenType.CloseParen, currentLine, currentIndex, currentIndex + 1, ")"); advance() }
                 '"' -> {
                     val token = scanString()
                     tokenList += token
@@ -73,7 +78,6 @@ class Lexer(private val string: String) {
                 }
                 else -> { throw IllegalArgumentException("Invalid character at $currentLine:$currentIndexInLine: '$char'") }
             }
-            advance()
         }
         return LexedFile(tokenList)
     }
@@ -109,6 +113,7 @@ class Lexer(private val string: String) {
             } else if (char != '"') {
                 value.append(char)
             } else {
+                advance()
                 break
             }
         }

@@ -7,30 +7,52 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
-import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class LexerTest {
 
     companion object {
         @JvmStatic
-        fun happyTests(): Stream<Arguments> {
+        fun `happy test cases`(): Stream<Arguments> {
             return Stream.of(
-                Arguments.of("let test = 1", listOf(
+                Arguments.of("Standard assignment", "let test = 1", listOf(
                     Token(TokenType.Assignment, 0, 0, 3, "let"),
                     Token(TokenType.Identifier, 0, 4, 8, "test"),
                     Token(TokenType.Equals, 0, 9, 10, "="),
                     Token(TokenType.Number, 0, 11, 12, "1"),
-                ))
+                )),
+                Arguments.of("Basic float number", "29_385.33", listOf(
+                    Token(TokenType.Number, 0, 0, 9, "29385.33"),
+                )),
+                Arguments.of("Basic int number", "29_385", listOf(
+                    Token(TokenType.Number, 0, 0, 6, "29385"),
+                )),
+                Arguments.of("Basic string", "\"Hello world\"", listOf(
+                    Token(TokenType.String, 0, 0, 13, "Hello world"),
+                )),
+                Arguments.of("String with escapes", "\"Hello \\\"world\\\" is what someone said\"", listOf(
+                    Token(TokenType.String, 0, 0, 38, "Hello \"world\" is what someone said"),
+                )),
+                Arguments.of("Two assignments", "let test = 1\nlet secondTest = test + 1", listOf(
+                    Token(TokenType.Assignment, 0, 0, 3, "let"),
+                    Token(TokenType.Identifier, 0, 4, 8, "test"),
+                    Token(TokenType.Equals, 0, 9, 10, "="),
+                    Token(TokenType.Number, 0, 11, 12, "1"),
+                    Token(TokenType.Assignment, 1, 0, 3, "let"),
+                    Token(TokenType.Identifier, 1, 4, 14, "secondTest"),
+                    Token(TokenType.Equals, 1, 15, 16, "="),
+                    Token(TokenType.Identifier, 1, 17, 21, "test"),
+                    Token(TokenType.Plus, 1, 22, 23, "+"),
+                    Token(TokenType.Number, 1, 24, 25, "1"),
+                )),
             )
         }
     }
 
-    @ParameterizedTest
-    @MethodSource("happyTests")
-    fun appHasAGreeting(string: String, result: List<Token>) {
-        val classUnderTest = Lexer(string)
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("happy test cases")
+    fun `happy path lexer tests`(name: String, code: String, result: List<Token>) {
+        val classUnderTest = Lexer(code)
         assertEquals(result, classUnderTest.lex().expressions)
     }
 }
