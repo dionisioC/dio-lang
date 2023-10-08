@@ -26,6 +26,7 @@ enum class TokenType {
     ShiftLeft,
     ShiftRight,
     Assignment,
+    Function,
     ;
 }
 

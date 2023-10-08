@@ -53,6 +53,6 @@ class LexerTest {
     @MethodSource("happy test cases")
     fun `happy path lexer tests`(name: String, code: String, result: List<Token>) {
         val classUnderTest = Lexer(code)
-        assertEquals(result, classUnderTest.lex().expressions)
+        assertEquals(result, classUnderTest.lex())
     }
 }

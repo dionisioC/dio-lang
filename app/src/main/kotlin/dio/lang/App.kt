@@ -13,13 +13,13 @@ val STRING_SUB_CHARS = "\t\""
 private val CHAR_START_CHARACTER = '\''
 
 fun main() {
-    val string = """let identifier = 1
-        |let number = identifier + 1
-        |"My test"
-        |293_875
+    val string = """let identifier = 1 + 1
     """.trimMargin()
     val lexer = Lexer(string)
-    println(lexer.lex())
+    val tokens = lexer.lex()
+    val  parser = Parser(tokens)
+    val ast = parser.parse()
+    println(ast)
 }
 
 
@@ -53,14 +53,4 @@ fun scanChar(string: String, index: Int): Token {
     }
 
     return Token(TokenType.Char, 1, index, internalIndex, stringBuilder.toString())
-}
-
-data class LexedFile(
-    val expressions: List<Token>,
-)
-
-sealed interface Expression
-
-
-class UnaryExpression: Expression {
 }

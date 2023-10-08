@@ -6,7 +6,7 @@ class Lexer(private val string: String) {
     private var currentIndex = 0
     private var currentIndexInLine = 0
 
-    fun lex(): LexedFile {
+    fun lex(): List<Token> {
         println("Lexing: $string")
         while (currentIndex < string.length) {
             val char = current() ?: break
@@ -79,7 +79,7 @@ class Lexer(private val string: String) {
                 else -> { throw IllegalArgumentException("Invalid character at $currentLine:$currentIndexInLine: '$char'") }
             }
         }
-        return LexedFile(tokenList)
+        return tokenList
     }
 
     private fun scanWord(): Token {
@@ -98,7 +98,7 @@ class Lexer(private val string: String) {
 
     private fun scanString(): Token {
         val value = StringBuilder()
-        val startIndex = currentIndex
+        val startIndex = currentIndexInLine
         while (true) {
             // val x = "asdf -> \"hello\"" = asdf -> "hello"
             val char = next()
@@ -117,7 +117,7 @@ class Lexer(private val string: String) {
                 break
             }
         }
-        return Token(TokenType.String, currentLine, currentIndex - (currentIndex - startIndex), currentIndex, value.toString())
+        return Token(TokenType.String, currentLine, currentIndexInLine - (currentIndexInLine - startIndex), currentIndexInLine, value.toString())
     }
 
     private fun scanNumber(): Token {
