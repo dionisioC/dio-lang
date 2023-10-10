@@ -38,41 +38,17 @@ class Parser(
         val expressions = mutableListOf<Expression>()
         while (currentIndex < tokens.size - 1) {
             val token = current()
-            when (token.tokenType) {
-                TokenType.OpenParen -> TODO()
-                TokenType.CloseParen -> TODO()
-                TokenType.Slash -> TODO()
-                TokenType.Backslash -> TODO()
-                TokenType.Asterisk -> TODO()
-                TokenType.Equals -> TODO()
-                TokenType.DoubleEquals -> TODO()
-                TokenType.GreaterThan -> TODO()
-                TokenType.LessThan -> TODO()
-                TokenType.GreaterThanEquals -> TODO()
-                TokenType.LessThanEquals -> TODO()
-                TokenType.Colon -> TODO()
-                TokenType.Semicolon -> TODO()
-                TokenType.Plus -> TODO()
-                TokenType.Minus -> TODO()
-                TokenType.Underscore -> TODO()
-                TokenType.Identifier -> TODO()
-                TokenType.Number -> TODO()
-                TokenType.String -> TODO()
-                TokenType.Char -> TODO()
-                TokenType.Class -> TODO()
-                TokenType.Interface -> TODO()
-                TokenType.ShiftLeft -> TODO()
-                TokenType.ShiftRight -> TODO()
-                TokenType.Assignment -> {
-                    // let x = expression
-                    advance()
-                    val name = current()
-                    advance() // =
-                    val expression = getExpression()
-                    expressions += AssignExpression(name.value, expression)
-                }
-                TokenType.Function -> TODO()
+            if (token.type == TokenType.EOF) {
+                break
+            } else if (token.type == TokenType.Assignment) {
+                // let x = expression
+                advance()
+                val name = current()
+                advance() // =
+                val expression = getExpression()
+                expressions += AssignExpression(name.value, expression)
             }
+            advance()
         }
 
         return expressions
@@ -81,36 +57,13 @@ class Parser(
     private fun getExpression(): Expression {
         val token = next()
 
-        when (token.tokenType) {
-            TokenType.OpenParen -> TODO()
-            TokenType.CloseParen -> TODO()
-            TokenType.Slash -> TODO()
-            TokenType.Backslash -> TODO()
-            TokenType.Asterisk -> TODO()
-            TokenType.Equals -> TODO()
-            TokenType.DoubleEquals -> TODO()
-            TokenType.GreaterThan -> TODO()
-            TokenType.LessThan -> TODO()
-            TokenType.GreaterThanEquals -> TODO()
-            TokenType.LessThanEquals -> TODO()
-            TokenType.Colon -> TODO()
-            TokenType.Semicolon -> TODO()
-            TokenType.Plus -> TODO()
-            TokenType.Minus -> TODO()
-            TokenType.Underscore -> TODO()
-            TokenType.Identifier -> TODO()
-            TokenType.Number -> {
-                return LiteralExpression(token.value.toInt())
-            }
-            TokenType.String -> TODO()
-            TokenType.Char -> TODO()
-            TokenType.Class -> TODO()
-            TokenType.Interface -> TODO()
-            TokenType.ShiftLeft -> TODO()
-            TokenType.ShiftRight -> TODO()
-            TokenType.Assignment -> TODO()
-            TokenType.Function -> TODO()
+        if (token.type == TokenType.Number) {
+            return LiteralExpression(token.value.toInt())
+        } else if (token.type == TokenType.String) {
+            return LiteralExpression(token.value)
         }
+
+        TODO("Need to implement this lol")
     }
 
     private fun advance() {
@@ -120,6 +73,10 @@ class Parser(
     private fun next(): Token {
         advance()
         return current()
+    }
+
+    private fun peek(): Token {
+        return tokens[currentIndex++]
     }
 
     private fun current() = tokens[currentIndex]

@@ -79,6 +79,7 @@ class Lexer(private val string: String) {
                 else -> { throw IllegalArgumentException("Invalid character at $currentLine:$currentIndexInLine: '$char'") }
             }
         }
+        tokenList += Token(TokenType.EOF, currentLine, currentIndex, currentIndex, "")
         return tokenList
     }
 

@@ -27,11 +27,12 @@ enum class TokenType {
     ShiftRight,
     Assignment,
     Function,
+    EOF,
     ;
 }
 
 data class Token(
-    val tokenType: TokenType,
+    val type: TokenType,
     val line: Int,
     val start: Int,
     val end: Int,
