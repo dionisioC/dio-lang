@@ -26,6 +26,12 @@ class LexerTest {
                     Token(TokenType.Number, 0, 0, 9, "29385.33"),
                     Token(TokenType.EOF, 0, 9, 9, ""),
                 )),
+                Arguments.of("Number or true", "29_385.33 || true", listOf(
+                    Token(TokenType.Number, 0, 0, 9, "29385.33"),
+                    Token(TokenType.DoubleOr, 0, 10, 12, "||"),
+                    Token(TokenType.True, 0, 13, 17, "true"),
+                    Token(TokenType.EOF, 0, 17, 17, ""),
+                )),
                 Arguments.of("Basic int number", "29_385", listOf(
                     Token(TokenType.Number, 0, 0, 6, "29385"),
                     Token(TokenType.EOF, 0, 6, 6, ""),

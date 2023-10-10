@@ -39,6 +39,24 @@ class Lexer(private val string: String) {
                         advance()
                     }
                 }
+                '&' -> {
+                    if (peek() == '&') {
+                        tokenList += Token(TokenType.DoubleAmpersand, currentLine, currentIndex, currentIndex + 2, "&&")
+                        advance(2)
+                    } else {
+                        tokenList += Token(TokenType.Ampersand, currentLine, currentIndex, currentIndex + 1, "&")
+                        advance()
+                    }
+                }
+                '|' -> {
+                    if (peek() == '|') {
+                        tokenList += Token(TokenType.DoubleOr, currentLine, currentIndex, currentIndex + 2, "||")
+                        advance(2)
+                    } else {
+                        tokenList += Token(TokenType.Or, currentLine, currentIndex, currentIndex + 1, "|")
+                        advance()
+                    }
+                }
                 '>' -> {
                     if (peek() == '=') {
                         tokenList += Token(TokenType.GreaterThanEquals, currentLine, currentIndex, currentIndex + 2, "=")

@@ -36,11 +36,9 @@ class Parser(
 
     fun parse(): List<Expression> {
         val expressions = mutableListOf<Expression>()
-        while (currentIndex < tokens.size - 1) {
+        while (current().type != TokenType.EOF) {
             val token = current()
-            if (token.type == TokenType.EOF) {
-                break
-            } else if (token.type == TokenType.Assignment) {
+            if (token.type == TokenType.Assignment) {
                 // let x = expression
                 advance()
                 val name = current()
